@@ -267,8 +267,8 @@ class OpenStackServiceCatalog(object):
         elif ('1.1' in self._auth_version) or ('1.0' in self._auth_version):
             endpoints = self._service_catalog.get(name, {})
 
-        for key, value in endpoints.items():
-            eps.append(value[0])
+        for regionName, values in endpoints.items():
+            eps.append(values[0])
 
         return eps
 
