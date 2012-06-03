@@ -423,6 +423,30 @@ class CloudFilesStorageDriver(StorageDriver, OpenStackDriverMixin):
 
         raise LibcloudError('Unexpected status code: %s' % (response.status))
 
+    def ex_set_cdn_container_meta_data(self, container, key, value):
+        container_name = container.name
+        headers = {'X-Auth-Token': self.connection.auth_token,
+                   'X-%s' % key: value}
+        response = self.connection.request('/%s' % (container_name),
+                                           method='POST',
+                                           headers=headers,
+                                           cdn_request=True)
+
+        if response.status in [ httplib.CREATED, httplib.ACCEPTED ]:
+            return True
+
+        return False
+
+    def ex_set_cdn_container_index(self, container, index_page):
+        return self.ex_set_cdn_container_meta_data(container,
+                                                   'Container-Meta-Web-Index',
+                                                   index_page)
+
+    def ex_set_cdn_container_error(self, container, error_page):
+        return self.ex_set_cdn_container_meta_data(container,
+                                                   'Container-Meta-Web-Error',
+                                                   error_page)
+
     def ex_multipart_upload_object(self, file_path, container, object_name,
                                    chunk_size=33554432, extra=None,
                                    verify_hash=True):
