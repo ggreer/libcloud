@@ -432,7 +432,7 @@ class CloudFilesStorageDriver(StorageDriver, OpenStackDriverMixin):
                                            headers=headers,
                                            cdn_request=True)
 
-        if response.status in [ httplib.CREATED, httplib.ACCEPTED ]:
+        if response.status == httplib.NO_CONTENT:
             return True
 
         return False
