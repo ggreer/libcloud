@@ -274,12 +274,16 @@ class CloudFilesStorageDriver(StorageDriver, OpenStackDriverMixin):
         container_cdn_url = self.get_container_cdn_url(container=obj.container)
         return '%s/%s' % (container_cdn_url, obj.name)
 
-    def enable_container_cdn(self, container, ex_ttl=None):
+    def enable_container_cdn(self, container, ex_ttl=None, ex_index_page=None, ex_error_page=None):
         container_name = container.name
         headers = {'X-CDN-Enabled': 'True'}
 
         if ex_ttl:
             headers['X-TTL'] = ex_ttl
+        if ex_index_page:
+            headers['X-Container-Meta-Web-Index'] = ex_index_page
+        if ex_error_page:
+            headers['X-Container-Meta-Web-Error'] = ex_error_page
 
         response = self.connection.request('/%s' % (container_name),
                                            method='PUT',
@@ -416,30 +420,6 @@ class CloudFilesStorageDriver(StorageDriver, OpenStackDriverMixin):
                       'bytes_used': int(bytes_used) }
 
         raise LibcloudError('Unexpected status code: %s' % (response.status))
-
-    def ex_set_cdn_container_meta_data(self, container, key, value):
-        container_name = container.name
-        headers = {'X-Auth-Token': self.connection.auth_token,
-                   'X-%s' % key: value}
-        response = self.connection.request('/%s' % (container_name),
-                                           method='POST',
-                                           headers=headers,
-                                           cdn_request=True)
-
-        if response.status == httplib.NO_CONTENT:
-            return True
-
-        return False
-
-    def ex_set_cdn_container_index(self, container, index_page):
-        return self.ex_set_cdn_container_meta_data(container,
-                                                   'Container-Meta-Web-Index',
-                                                   index_page)
-
-    def ex_set_cdn_container_error(self, container, error_page):
-        return self.ex_set_cdn_container_meta_data(container,
-                                                   'Container-Meta-Web-Error',
-                                                   error_page)
 
     def ex_multipart_upload_object(self, file_path, container, object_name,
                                    chunk_size=33554432, extra=None,
